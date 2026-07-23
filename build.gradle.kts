@@ -21,11 +21,6 @@ import com.android.build.gradle.BaseExtension
 import com.itsaky.androidide.treesitter.BuildTreeSitterTask
 import com.itsaky.androidide.treesitter.CleanTreeSitterBuildTask
 import com.itsaky.androidide.treesitter.projectVersionCode
-import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
-import com.vanniktech.maven.publish.JavaLibrary
-import com.vanniktech.maven.publish.JavadocJar
-import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 
 buildscript {
   dependencies {
@@ -36,8 +31,11 @@ buildscript {
 @Suppress("DSL_SCOPE_VIOLATION") plugins {
   id("build-logic.root-project")
   alias(libs.plugins.kotlin) apply false
-  alias(libs.plugins.maven.publish) apply false
 }
+
+// Nyx previously supplied the project version dynamically. Keep an explicit
+// SEMVER value because Android versionCode generation requires a leading 'v'.
+version = "v1.0.0"
 
 fun Project.configureBaseExtension() {
   extensions.configure<BaseExtension> {
@@ -89,62 +87,7 @@ subprojects {
     }
   }
 
-  plugins.withId("com.vanniktech.maven.publish.base") {
-    configure<MavenPublishBaseExtension> {
-      group = "com.itsaky.androidide.treesitter"
-      var versionName = rootProject.version.toString()
-      if (!System.getenv("PublishToMaven").toBoolean()) {
-        versionName = "$versionName-SNAPSHOT"
-      }
-      versionName = versionName.substring(1) // remove 'v' prefix
-
-      pom {
-        name.set(project.name)
-
-        description.set(
-          if (project.description.isNullOrBlank()) "${project.name} grammar for android-tree-sitter."
-          else project.description)
-
-        inceptionYear.set("2022")
-        url.set("https://github.com/itsaky/android-tree-sitter/")
-
-        licenses {
-          license {
-            name.set("LGPL-v2.1")
-            url.set(
-              "https://github.com/itsaky/android-tree-sitter/blob/main/LICENSE")
-            distribution.set("repo")
-          }
-        }
-
-        scm {
-          url.set("https://github.com/itsaky/android-tree-sitter/")
-          connection.set(
-            "scm:git:git://github.com/itsaky/android-tree-sitter.git")
-          developerConnection.set(
-            "scm:git:ssh://git@github.com/itsaky/android-tree-sitter.git")
-        }
-
-        developers {
-          developer {
-            id.set("androidide")
-            name.set("AndroidIDE")
-            url.set("https://androidide.com")
-          }
-        }
-      }
-
-      coordinates(project.group.toString(), project.name, versionName)
-      publishToMavenCentral(host = SonatypeHost.S01)
-      signAllPublications()
-      if (plugins.hasPlugin("java-library")) {
-        configure(
-          JavaLibrary(javadocJar = JavadocJar.Javadoc(), sourcesJar = true))
-      } else {
-        configure(AndroidSingleVariantLibrary(publishJavadocJar = false))
-      }
-    }
-  }
+  // Maven publication is intentionally disabled; release AARs are built with assembleRelease.
 }
 
 tasks.register<BuildTreeSitterTask>("buildTreeSitter")

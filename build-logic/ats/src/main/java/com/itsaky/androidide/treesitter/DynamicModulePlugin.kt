@@ -236,7 +236,6 @@ $LICENSE
 
 plugins {
   id("com.android.library")
-  id("com.vanniktech.maven.publish.base")
   id("android-tree-sitter.ts")
   id("android-tree-sitter.ts-grammar")
 }
