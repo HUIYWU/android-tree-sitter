@@ -76,7 +76,9 @@ dependencies {
     implementation(projects.treeSitterLog)
     implementation(projects.treeSitterPython)
     implementation(projects.treeSitterXml)
-
+   
+    implementation(projects.treeSitterC)
+    
     testImplementation(libs.tests.junit)
     androidTestImplementation(libs.tests.androidx.ext.junit)
     androidTestImplementation(libs.tests.androidx.espresso.core)
