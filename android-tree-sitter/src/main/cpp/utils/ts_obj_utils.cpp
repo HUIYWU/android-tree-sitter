@@ -15,9 +15,10 @@
  *  along with android-tree-sitter.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef TS_UTILS
-#define TS_UTILS
-
+// This is an implementation file and must always emit its function definitions.
+// Do not wrap the translation unit in a generic TS_UTILS include guard: that
+// macro may be defined by a toolchain/header and would silently make this
+// object file empty, causing unresolved marshal/onLoad symbols at link time.
 #include "ts_obj_utils.h"
 
 jint getPredicateTypeId(TSQueryPredicateStepType type);
@@ -368,5 +369,3 @@ jint getPredicateTypeId(TSQueryPredicateStepType type) {
       return 0;
   }
 }
-
-#endif

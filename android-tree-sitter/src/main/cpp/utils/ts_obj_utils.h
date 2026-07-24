@@ -15,6 +15,8 @@
  *  along with android-tree-sitter.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include <jni.h>
 #include "tree_sitter/api.h"
 
