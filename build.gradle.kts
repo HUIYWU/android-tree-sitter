@@ -115,7 +115,7 @@ subprojects {
 
   if (name in githubPackageModules) {
     group = providers.gradleProperty("gpr.group")
-      .orElse("com.itsaky.androidide.treesitter")
+      .orElse("com.huiywu.androidcs.treesitter")
       .get()
     version = rootProject.version.toString().removePrefix("v")
 
