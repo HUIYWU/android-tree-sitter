@@ -18,7 +18,10 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
 import com.itsaky.androidide.treesitter.BuildTreeSitterTask
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 import com.itsaky.androidide.treesitter.CleanTreeSitterBuildTask
 import com.itsaky.androidide.treesitter.projectVersionCode
 
@@ -33,9 +36,21 @@ buildscript {
   alias(libs.plugins.kotlin) apply false
 }
 
-// Nyx previously supplied the project version dynamically. Keep an explicit
-// SEMVER value because Android versionCode generation requires a leading 'v'.
-version = "v1.0.0"
+// Android uses the leading 'v'; Maven publications remove it.
+val releaseVersion = providers.gradleProperty("releaseVersion").orElse("1.0.0")
+version = "v${releaseVersion.get().removePrefix("v")}" 
+
+fun Project.githubPackagesOwner(): String =
+  providers.gradleProperty("gpr.owner")
+    .orElse(providers.environmentVariable("GITHUB_REPOSITORY_OWNER"))
+    .orElse("YOUR_GITHUB_OWNER")
+    .get()
+
+fun Project.githubPackagesRepository(): String =
+  providers.gradleProperty("gpr.repository")
+    .orElse(providers.environmentVariable("GITHUB_REPOSITORY").map { it.substringAfter('/') })
+    .orElse("android-tree-sitter")
+    .get()
 
 fun Project.configureBaseExtension() {
   extensions.configure<BaseExtension> {
@@ -87,7 +102,79 @@ subprojects {
     }
   }
 
-  // Maven publication is intentionally disabled; release AARs are built with assembleRelease.
+  val githubPackageModules = setOf(
+    "android-tree-sitter",
+    "annotations",
+    "tree-sitter-cpp",
+    "tree-sitter-java",
+    "tree-sitter-json",
+    "tree-sitter-kotlin",
+    "tree-sitter-log",
+    "tree-sitter-xml",
+  )
+
+  if (name in githubPackageModules) {
+    group = providers.gradleProperty("gpr.group")
+      .orElse("com.itsaky.androidide.treesitter")
+      .get()
+    version = rootProject.version.toString().removePrefix("v")
+
+    plugins.withId("com.android.library") {
+      extensions.configure<LibraryExtension> {
+        publishing {
+          singleVariant("release") {
+            withSourcesJar()
+          }
+        }
+      }
+    }
+
+    plugins.withId("maven-publish") {
+      afterEvaluate {
+        extensions.configure<PublishingExtension> {
+          publications {
+            create<MavenPublication>("release") {
+              artifactId = project.name
+              from(components[if (plugins.hasPlugin("com.android.library")) "release" else "java"])
+
+              pom {
+                name.set(project.name)
+                description.set(project.description
+                  ?: "${project.name} for Android Tree-sitter")
+                url.set("https://github.com/${githubPackagesOwner()}/${githubPackagesRepository()}")
+                licenses {
+                  license {
+                    name.set("GNU Lesser General Public License v2.1")
+                    url.set("https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html")
+                    distribution.set("repo")
+                  }
+                }
+                scm {
+                  url.set("https://github.com/${githubPackagesOwner()}/${githubPackagesRepository()}")
+                  connection.set("scm:git:https://github.com/${githubPackagesOwner()}/${githubPackagesRepository()}.git")
+                }
+              }
+            }
+          }
+
+          repositories {
+            maven {
+              name = "GitHubPackages"
+              url = uri("https://maven.pkg.github.com/${githubPackagesOwner()}/${githubPackagesRepository()}")
+              credentials {
+                username = providers.gradleProperty("gpr.user")
+                  .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+                  .orNull
+                password = providers.gradleProperty("gpr.token")
+                  .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+                  .orNull
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 tasks.register<BuildTreeSitterTask>("buildTreeSitter")
@@ -102,6 +189,9 @@ tasks.register<Delete>("clean").configure {
 
 fun Project.configureTsModule() {
   extensions.configure<BaseExtension> {
+  
+    packagingOptions.jniLibs.keepDebugSymbols += "**/*.so"
+    
     val grammarName = project.project.name.substringAfter("tree-sitter-", "")
     if (grammarName.isNotBlank()) {
       namespace = "com.itsaky.androidide.treesitter.$grammarName"
