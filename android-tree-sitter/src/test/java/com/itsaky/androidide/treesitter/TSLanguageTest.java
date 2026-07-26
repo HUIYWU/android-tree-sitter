@@ -17,6 +17,8 @@
 
 package com.itsaky.androidide.treesitter;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.itsaky.androidide.treesitter.java.TSLanguageJava;
 
 import org.junit.Test;
@@ -29,6 +31,14 @@ import org.robolectric.RobolectricTestRunner;
  */
 @RunWith(RobolectricTestRunner.class)
 public class TSLanguageTest extends TreeSitterTest {
+
+  @Test
+  public void symbolTypeIdsMatchTreeSitter024() {
+    assertThat(TSSymbolType.forId(0)).isEqualTo(TSSymbolType.REGULAR);
+    assertThat(TSSymbolType.forId(1)).isEqualTo(TSSymbolType.ANONYMOUS);
+    assertThat(TSSymbolType.forId(2)).isEqualTo(TSSymbolType.SUPERTYPE);
+    assertThat(TSSymbolType.forId(3)).isEqualTo(TSSymbolType.AUXILIARY);
+  }
 
   @Test
   public void testFunctionality() {

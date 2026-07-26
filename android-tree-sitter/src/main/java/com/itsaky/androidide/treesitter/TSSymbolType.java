@@ -25,7 +25,9 @@ package com.itsaky.androidide.treesitter;
 public enum TSSymbolType {
   REGULAR(0),
   ANONYMOUS(1),
-  AUXILIARY(2);
+  /** A named hidden rule that is declared as a supertype. */
+  SUPERTYPE(2),
+  AUXILIARY(3);
 
   final int id;
 
