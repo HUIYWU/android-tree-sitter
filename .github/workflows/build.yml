@@ -66,7 +66,9 @@ jobs:
       - name: Change Gradle wrapper permissions
         run: chmod +x ./gradlew
       - name: Assemble Release
-        run: ./gradlew assembleRelease generateDebugSymbolsRelease --parallel --stacktrace
+        run: |
+          /usr/bin/time -v -o build-release-memory.txt \
+            ./gradlew assembleRelease generateDebugSymbolsRelease --parallel --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
       - name: Upload APK
@@ -74,6 +76,16 @@ jobs:
         with:
           name: app-release
           path: app/build/outputs/apk/release/app-release.apk
+      - name: Upload Kotlin grammar AAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: tree-sitter-kotlin-release
+          path: grammar-modules/kotlin/build/outputs/aar/tree-sitter-kotlin-release.aar
+      - name: Upload build memory usage
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-release-memory
+          path: build-release-memory.txt
       - name: Upload debug symbols
         uses: actions/upload-artifact@v4
         with:
