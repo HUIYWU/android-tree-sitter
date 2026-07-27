@@ -179,7 +179,7 @@ public class ParserTest extends TreeSitterTest {
         assertThat(rootNode).isNotNull();
         assertThat(rootNode.getChildCount()).isGreaterThan(0);
         assertThat(rootNode.getNodeString()).isEqualTo(
-          "(source_file (class_declaration (type_identifier) (class_body (function_declaration (simple_identifier) (function_value_parameters) (function_body (statements (call_expression (simple_identifier) (call_suffix (value_arguments (value_argument (string_literal (string_content))))))))))))");
+          "(source_file (class_declaration name: (type_identifier) (class_body (function_declaration name: (simple_identifier) (function_value_parameters) (function_body (statements (call_expression (simple_identifier) (call_suffix (value_arguments (value_argument (string_literal)))))))))))");
       }
     }
   }
