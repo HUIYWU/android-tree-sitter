@@ -85,35 +85,43 @@ UTF16String *UTF16String::append(JNIEnv *env, jstring src) {
 UTF16String *UTF16String::append(JNIEnv *env, jstring src, jint from, jint len) {
     const jchar *chars = FNI_GetStringChars(env, src, nullptr);
     for (jint i = from; i < from + len; ++i) {
-        auto c = *(chars + i);
-        append(c);
+        append(*(chars + i));
     }
     FNI_ReleaseStringChars(chars);
     return this;
 }
 
 UTF16String *UTF16String::insert(jint index, jbyte byte) {
+    if (index < 0 || index > byte_length()) {
+        return this;
+    }
     _string.insert(_string.begin() + index, byte);
     return this;
 }
 
 UTF16String *UTF16String::insert(jint index, jchar c) {
-    insert(index << CODER, (jbyte) (c >> HI_BYTE_SHIFT));
-    insert((index << CODER) + 1, (jbyte) (c >> LO_BYTE_SHIFT));
+    if (index < 0 || index > length()) {
+        return this;
+    }
+    const jint byte_index = index << CODER;
+    insert(byte_index, (jbyte) (c >> HI_BYTE_SHIFT));
+    insert(byte_index + 1, (jbyte) (c >> LO_BYTE_SHIFT));
     return this;
 }
 
 UTF16String *UTF16String::insert(JNIEnv *env, jstring src, jint index) {
+    if (index < 0 || index > length()) {
+        return this;
+    }
+
     jint len;
     const jchar *chars = FNI_GetStringChars(env, src, &len);
-    _string.reserve(byte_length() + len);
+    _string.reserve(byte_length() + (len << CODER));
     for (jint i = 0; i < len; ++i) {
-        auto c = *(chars + i);
-        insert(index + i, c);
+        insert(index + i, *(chars + i));
     }
 
     FNI_ReleaseStringChars(chars);
-
     return this;
 }
 
