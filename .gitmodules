@@ -12,7 +12,7 @@
 	url = https://github.com/HUIYWU/tree-sitter-kotlin.git
 [submodule "grammars/log"]
 	path = grammars/log
-	url = https://github.com/AndroidIDEOfficial/tree-sitter-log
+	url = https://github.com/HUIYWU/tree-sitter-log.git
 [submodule "grammars/python"]
 	path = grammars/python
 	url = https://github.com/tree-sitter/tree-sitter-python.git
